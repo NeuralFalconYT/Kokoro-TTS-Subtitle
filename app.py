@@ -160,7 +160,7 @@ def remove_silence_function(file_path,minimum_silence=50):
     return output_path
 
 def generate_and_save_audio(text, Language="American English",voice="af_bella", speed=1,remove_silence=False,keep_silence_up_to=0.05):
-    
+    text=clean_text(text)
     update_pipeline(Language)
     generator = pipeline(text, voice=voice, speed=speed, split_pattern=r'\n+')
     save_path=tts_file_name(text)
