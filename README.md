@@ -43,6 +43,9 @@
      ```sh
      python app.py
      ```
+   Or,<br>
+   ```python one_clicker.py```<br>
+   Then, double-click on `run_app.bat` (Windows) to execute the script.
 
 
 ## License
