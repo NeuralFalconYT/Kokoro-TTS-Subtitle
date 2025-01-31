@@ -1,6 +1,6 @@
 # Initalize a pipeline
 from kokoro import KPipeline
-from IPython.display import display, Audio
+# from IPython.display import display, Audio
 import soundfile as sf
 import os
 from huggingface_hub import list_repo_files
