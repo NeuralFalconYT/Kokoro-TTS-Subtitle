@@ -36,8 +36,9 @@ def update_pipeline(Language):
 
     # Print installation instructions if necessary
     if Language in install_messages:
-        raise gr.Error(f"To use {Language}, install: {install_messages[Language]}",duration=10)
-        gr.Warning("Reverting to default English pipeline...", duration=5)
+        # raise gr.Error(f"To Use {Language} Install: {install_messages[Language]}",duration=10)
+        gr.Warning(f"To Use {Language} Install: {install_messages[Language]}",duration=10)
+        # gr.Warning("Reverting to default English pipeline...", duration=5)
         # print(f"To use {Language}, install: {install_messages[Language]}")
         # print("Reverting to default English pipeline...")
         
@@ -210,7 +211,8 @@ def ui():
         ["你好，你怎么样?", "Mandarin Chinese", "zf_xiaoni", 1.0, False]
     ]
     
-    with gr.Blocks() as demo:
+    with gr.Blocks(theme='JohnSmith9982/small_and_pretty') as demo:
+        gr.Markdown("<center><h1 style='font-size: 30px;'>KOKORO TTS</h1></center>")  # Larger title with CSS
         lang_list = ['American English', 'British English', 'Hindi', 'Spanish', 'French', 'Italian', 'Brazilian Portuguese', 'Japanese', 'Mandarin Chinese']
         voice_names = get_voice_names("hexgrad/Kokoro-82M")
 
