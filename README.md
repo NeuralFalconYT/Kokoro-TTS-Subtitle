@@ -72,6 +72,28 @@
    Then, double-click on `run_app.bat` (Windows) to execute the script.
 
 
+
+###### Uninstallation Guide for Kokoro v1.0
+
+##### If You Used a Virtual Environment:
+1. Simply delete the `kokoro_v1` folder from your project directory.
+
+##### If You Did Not Use a Virtual Environment:
+1. Inside the `kokoro_v1` directory, run the following command to uninstall dependencies:
+   ```bash
+   pip uninstall -r requirements.txt
+   ```
+2. Uninstall PyTorch:
+   ```bash
+   pip uninstall torch
+   ```
+##### To clear the HuggingFace cache models:
+   - Navigate to `C:\Users\<username>\.cache\huggingface\hub`
+   - Delete the contents of the `hub` folder.
+That's it! You've successfully removed everything.
+
+
+
 ## License
 [Kokoro model](https://huggingface.co/hexgrad/Kokoro-82M) is licensed under the [Apache License 2.0]
 ## Credits
