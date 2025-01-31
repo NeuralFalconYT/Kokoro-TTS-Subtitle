@@ -1,7 +1,7 @@
 # Initalize a pipeline
 from kokoro import KPipeline
 # from IPython.display import display, Audio
-import soundfile as sf
+# import soundfile as sf
 import os
 from huggingface_hub import list_repo_files
 import uuid
@@ -136,7 +136,7 @@ def tts_file_name(text):
     return file_name
 
 
-import soundfile as sf
+# import soundfile as sf
 import numpy as np
 import wave
 from pydub import AudioSegment
