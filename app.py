@@ -1,7 +1,7 @@
 # Initalize a pipeline
 from kokoro import KPipeline
 # from IPython.display import display, Audio
-# import soundfile as sf
+import soundfile as sf
 import os
 from huggingface_hub import list_repo_files
 import uuid
@@ -136,7 +136,7 @@ def tts_file_name(text):
     return file_name
 
 
-# import soundfile as sf
+import soundfile as sf
 import numpy as np
 import wave
 from pydub import AudioSegment
@@ -200,19 +200,19 @@ def ui():
 
     # Define examples in the format you mentioned
     dummy_examples = [
-        ["Hello, how are you?", "American English", "af_bella", 1.0, False],
-        ["Hello, how are you?", "British English", "bf_alice", 1.0, False],
-        ["नमस्ते, कैसे हो?", "Hindi", "hf_alpha", 1.0, False],
-        ["Hola, ¿cómo estás?", "Spanish", "ef_dora", 1.0, False],
-        ["Bonjour, comment ça va?", "French", "ff_siwis", 1.0, False],
-        ["Ciao, come stai?", "Italian", "if_sara", 1.0, False],
-        ["Olá, como você está?", "Brazilian Portuguese", "pf_dora", 1.0, False],
-        ["こんにちは、お元気ですか？", "Japanese", "jf_nezumi", 1.0, False],
-        ["你好，你怎么样?", "Mandarin Chinese", "zf_xiaoni", 1.0, False]
+        ["Hey, y'all, let’s grab some coffee and catch up!", "American English", "af_bella"],
+        ["I'd like a large coffee, please.", "British English", "bf_isabella"],
+        ["नमस्ते, कैसे हो?", "Hindi", "hf_alpha"],
+        ["Hola, ¿cómo estás?", "Spanish", "ef_dora"],
+        ["Bonjour, comment ça va?", "French", "ff_siwis"],
+        ["Ciao, come stai?", "Italian", "if_sara"],
+        ["Olá, como você está?", "Brazilian Portuguese", "pf_dora"],
+        ["こんにちは、お元気ですか？", "Japanese", "jf_nezumi"],
+        ["你好，你怎么样?", "Mandarin Chinese", "zf_xiaoni"]
     ]
     
-    with gr.Blocks(theme='JohnSmith9982/small_and_pretty') as demo:
-        gr.Markdown("<center><h1 style='font-size: 40px;'>KOKORO TTS</h1></center>")  # Larger title with CSS
+    with gr.Blocks() as demo:
+        # gr.Markdown("<center><h1 style='font-size: 40px;'>KOKORO TTS</h1></center>")  # Larger title with CSS
         lang_list = ['American English', 'British English', 'Hindi', 'Spanish', 'French', 'Italian', 'Brazilian Portuguese', 'Japanese', 'Mandarin Chinese']
         voice_names = get_voice_names("hexgrad/Kokoro-82M")
 
@@ -245,9 +245,38 @@ def ui():
         generate_btn.click(generate_and_save_audio, inputs=[text, language_name, voice_name, speed, remove_silence], outputs=[audio, audio_file])
 
         # Add examples to the interface
-        gr.Examples(examples=dummy_examples, inputs=[text, language_name, voice_name, speed, remove_silence])
+        gr.Examples(examples=dummy_examples, inputs=[text, language_name, voice_name])
 
     return demo
+
+def tutorial():
+    # Markdown explanation for language code
+    explanation = """
+    ## Language Code Explanation:
+    Example: `'af_bella'` 
+    - **'a'** stands for **American English**.
+    - **'f_'** stands for **Female** (If it were 'm_', it would mean Male).
+    - **'bella'** refers to the specific voice.
+
+    The first character in the voice code stands for the language:
+    - **"a"**: American English
+    - **"b"**: British English
+    - **"h"**: Hindi
+    - **"e"**: Spanish
+    - **"f"**: French
+    - **"i"**: Italian
+    - **"p"**: Brazilian Portuguese
+    - **"j"**: Japanese
+    - **"z"**: Mandarin Chinese
+
+    The second character stands for gender:
+    - **"f_"**: Female
+    - **"m_"**: Male
+    """
+    with gr.Blocks() as demo2:
+        gr.Markdown(explanation)  # Display the explanation
+    return demo2
+
 
 
 import click
@@ -255,7 +284,9 @@ import click
 @click.option("--debug", is_flag=True, default=False, help="Enable debug mode.")
 @click.option("--share", is_flag=True, default=False, help="Enable sharing of the interface.")
 def main(debug, share):
-    demo = ui()
+    demo1 = ui()
+    demo2 = tutorial()
+    demo = gr.TabbedInterface([demo1, demo2],["Multilingual TTS","VoicePack Explanation"],title="Kokoro TTS",theme='JohnSmith9982/small_and_pretty')
     demo.queue().launch(debug=debug, share=share)
     #Run on local network
     # laptop_ip="192.168.0.30"
