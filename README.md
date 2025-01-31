@@ -59,7 +59,32 @@
      pip install -r requirements.txt
      ```
 
-4. **Run the Application**<br>
+
+
+---
+
+4. **Install eSpeak NG**
+
+- **For Windows:**
+  1. Download the latest eSpeak NG release from the [eSpeak NG GitHub Releases](https://github.com/espeak-ng/espeak-ng/releases/tag/1.51).
+  2. Locate and download the file named **`espeak-ng-X64.msi`**.
+  3. Run the installer and follow the installation steps. Ensure that you install eSpeak NG in the default directory:
+     ```
+     C:\Program Files\eSpeak NG
+     ```
+     > **Note:** This default path is required for the application to locate eSpeak NG properly.
+
+- **For Linux:**
+  1. Open your terminal.
+  2. Install eSpeak NG using the following command:
+     ```bash
+     sudo apt-get -qq -y install espeak-ng > /dev/null 2>&1
+     ```
+     > **Note:** This command suppresses unnecessary output for a cleaner installation process.
+
+---
+
+5. **Run the Application**<br>
    If you used a virtual environment, make sure you enabled it.
    - **Windows/Mac/Linux:**
      ```sh
