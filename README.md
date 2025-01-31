@@ -31,7 +31,29 @@
      source myenv/bin/activate
      ```
 
-3. **Install Dependencies**
+3. **Install PyTorch**
+- **Forcefully install Torch with CUDA. If you did not, then requirements.txt will install the CPU version [It's happening with my system.]**
+  - Check CUDA Version (for GPU setup):
+    ```bash
+    nvcc --version
+    ```
+    Find your CUDA version example ```11.8```
+
+  - Visit [PyTorch Get Started](https://pytorch.org/get-started/locally/) and install the version compatible with your CUDA setup.:<br>
+    - For CUDA 11.8:
+    ```
+    pip install torch  --index-url https://download.pytorch.org/whl/cu118
+    ```
+    - For CUDA 12.1:
+    ```
+    pip install torch  --index-url https://download.pytorch.org/whl/cu121
+    ```
+    - For CUDA 12.4:
+    ```
+    pip install torch  --index-url https://download.pytorch.org/whl/cu124
+    ```
+    
+4. **Install Dependencies**
    - **Windows/Mac/Linux:**
      ```sh
      pip install -r requirements.txt
