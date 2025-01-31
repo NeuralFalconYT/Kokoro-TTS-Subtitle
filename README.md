@@ -22,13 +22,13 @@
 2. **(Optional) Create and Activate a Virtual Environment**
    - **Windows:**
      ```sh
-     python -m venv venv
-     venv\Scripts\activate
+     python -m venv myenv
+     myenv\Scripts\activate
      ```
    - **Mac/Linux:**
      ```sh
-     python3 -m venv venv
-     source venv/bin/activate
+     python3 -m venv myenv
+     source myenv/bin/activate
      ```
 
 3. **Install Dependencies**
