@@ -1,7 +1,7 @@
 # Initalize a pipeline
 from kokoro import KPipeline
 # from IPython.display import display, Audio
-import soundfile as sf
+# import soundfile as sf
 import os
 from huggingface_hub import list_repo_files
 import uuid
@@ -136,7 +136,7 @@ def tts_file_name(text):
     return file_name
 
 
-import soundfile as sf
+# import soundfile as sf
 import numpy as np
 import wave
 from pydub import AudioSegment
@@ -212,7 +212,7 @@ def ui():
     ]
     
     with gr.Blocks(theme='JohnSmith9982/small_and_pretty') as demo:
-        gr.Markdown("<center><h1 style='font-size: 30px;'>KOKORO TTS</h1></center>")  # Larger title with CSS
+        gr.Markdown("<center><h1 style='font-size: 40px;'>KOKORO TTS</h1></center>")  # Larger title with CSS
         lang_list = ['American English', 'British English', 'Hindi', 'Spanish', 'French', 'Italian', 'Brazilian Portuguese', 'Japanese', 'Mandarin Chinese']
         voice_names = get_voice_names("hexgrad/Kokoro-82M")
 
