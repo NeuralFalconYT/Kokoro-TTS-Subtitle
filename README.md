@@ -66,7 +66,9 @@
      python app.py
      ```
    Or,<br>
-   ```python one_clicker.py```<br>
+   ```
+   python one_clicker.py
+   ```
    Then, double-click on `run_app.bat` (Windows) to execute the script.
 
 
