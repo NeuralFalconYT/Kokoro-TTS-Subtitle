@@ -66,7 +66,7 @@
 4. **Install eSpeak NG**
 
 - **For Windows:**
-  1. Download the latest eSpeak NG release from the [eSpeak NG GitHub Releases](https://github.com/espeak-ng/espeak-ng/releases/tag/1.51).
+  1. Download the latest eSpeak NG release from the [eSpeak NG GitHub Releases](https://github.com/espeak-ng/espeak-ng/releases/tag/1.50).
   2. Locate and download the file named **`espeak-ng-X64.msi`**.
   3. Run the installer and follow the installation steps. Ensure that you install eSpeak NG in the default directory:
      ```
