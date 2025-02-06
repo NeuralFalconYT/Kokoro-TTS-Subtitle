@@ -95,8 +95,10 @@
    python one_clicker.py
    ```
    Then, double-click on `run_app.bat` (Windows) to execute the script.
+<br>
 
-
+6. **Use Kokoko TTS Gradio app as an API in your other project:**  
+   Check out ```scripts/api.py``` Code
 
 ###### Uninstallation Guide for Kokoro v1.0
 
