@@ -497,33 +497,33 @@ def ui():
 
         with gr.Row():
             with gr.Column():
-                text = gr.Textbox(label='Enter Text', lines=3)
+                text = gr.Textbox(label='📝 Enter Text', lines=3)
                 
                 with gr.Row():
-                    language_name = gr.Dropdown(lang_list, label="Select Language", value=lang_list[0])
+                    language_name = gr.Dropdown(lang_list, label="🌍 Select Language", value=lang_list[0])
 
                 with gr.Row():
-                    voice_name = gr.Dropdown(voice_names, label="Choose VoicePack", value='af_heart')#voice_names[0])
+                    voice_name = gr.Dropdown(voice_names, label="🎙️ Choose VoicePack", value='af_heart')#voice_names[0])
 
                 with gr.Row():
-                    generate_btn = gr.Button('Generate', variant='primary')
+                    generate_btn = gr.Button('🚀 Generate', variant='primary')
 
-                with gr.Accordion('Audio Settings', open=False):
+                with gr.Accordion('🎛️ Audio Settings', open=False):
                     speed = gr.Slider(minimum=0.25, maximum=2, value=1, step=0.1, label='⚡️Speed', info='Adjust the speaking speed')
                     remove_silence = gr.Checkbox(value=False, label='✂️ Remove Silence From TTS')
 
             with gr.Column():
-                audio = gr.Audio(interactive=False, label='Output Audio', autoplay=True)
-                audio_file = gr.File(label='Download Audio')
+                audio = gr.Audio(interactive=False, label='🔊 Output Audio', autoplay=True)
+                audio_file = gr.File(label='📥 Download Audio')
                 # word_level_srt_file = gr.File(label='Download Word-Level SRT')
                 # srt_file = gr.File(label='Download Sentence-Level SRT')
                 # sentence_duration_file = gr.File(label='Download Sentence Duration JSON')
-                with gr.Accordion('Autoplay, Subtitle, Timestamp', open=False):
-                    autoplay = gr.Checkbox(value=True, label='Autoplay')
+                with gr.Accordion('🎬 Autoplay, Subtitle, Timestamp', open=False):
+                    autoplay = gr.Checkbox(value=True, label='▶️ Autoplay')
                     autoplay.change(toggle_autoplay, inputs=[autoplay], outputs=[audio])
-                    word_level_srt_file = gr.File(label='Download Word-Level SRT')
-                    srt_file = gr.File(label='Download Sentence-Level SRT')
-                    sentence_duration_file = gr.File(label='Download Sentence Duration JSON')
+                    word_level_srt_file = gr.File(label='📝 Download Word-Level SRT')
+                    srt_file = gr.File(label='📜 Download Sentence-Level SRT')
+                    sentence_duration_file = gr.File(label='⏳ Download Sentence Duration JSON')
 
         text.submit(subtile_update, inputs=[text, language_name, voice_name, speed, remove_silence], outputs=[audio, audio_file,word_level_srt_file,srt_file,sentence_duration_file])
         generate_btn.click(subtile_update, inputs=[text, language_name, voice_name, speed, remove_silence], outputs=[audio, audio_file,word_level_srt_file,srt_file,sentence_duration_file])
@@ -571,7 +571,7 @@ import click
 def main(debug, share):
     demo1 = ui()
     demo2 = tutorial()
-    demo = gr.TabbedInterface([demo1, demo2],["Multilingual TTS","VoicePack Explanation"],title="Kokoro TTS",theme='JohnSmith9982/small_and_pretty')
+    demo = gr.TabbedInterface([demo1, demo2],["Multilingual TTS","VoicePack Explanation"],title="Kokoro TTS")#,theme='JohnSmith9982/small_and_pretty')
     demo.queue().launch(debug=debug, share=share)
     # demo.queue().launch(debug=debug, share=share,server_port=9000)
     #Run on local network
