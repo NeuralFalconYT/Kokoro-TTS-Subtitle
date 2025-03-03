@@ -3,11 +3,12 @@ import os
 from gradio_client import Client
 
 # Ensure the output directory exists
-output_dir = "api_output"
+output_dir = "./api_output"
 os.makedirs(output_dir, exist_ok=True)
 
-# Initialize the Gradio client
-api_url = "http://127.0.0.1:7860/"
+# paste here the gradio app url
+api_url = "http://127.0.0.1:9000/"
+
 client = Client(api_url)
 
 def text_to_speech(
@@ -23,17 +24,27 @@ def text_to_speech(
         voice=voice_name,
         speed=speed,
         remove_silence=remove_silence,
-        api_name="/generate_and_save_audio"
+        api_name="/subtile_update_1"
     )
-    
-    if isinstance(result, tuple):
-        result = result[0]  # Extract the first element if it's a tuple
 
-    save_at = os.path.join(output_dir, os.path.basename(result))
-    shutil.move(result, save_at)
-    print(f"Saved at {save_at}")
+    print(f"API Response: {result}")  # Debugging output
 
-    return save_at
+    if not result or not isinstance(result, (list, tuple)):  # Ensure result is a list/tuple
+        print("Error: API did not return valid file paths.")
+        return []
+
+    save_files = []    
+    for id, i in enumerate(result):
+        if not isinstance(i, str) or not os.path.exists(i):  # Check if file path is valid
+            print(f"Warning: Invalid or missing file - {i}")
+            continue  # Skip invalid files
+        
+        save_at = os.path.join(output_dir, os.path.basename(i))
+        shutil.move(i, save_at)
+        # print(f"Saved at {save_at}")
+        save_files.append(save_at)
+
+    return save_files
 
 # Example usage
 if __name__ == "__main__":
@@ -43,19 +54,13 @@ if __name__ == "__main__":
     speed = 1
     remove_silence = False
 
-    audio_path = text_to_speech(text, language, voice_name, speed, remove_silence)
+    save_files = text_to_speech(text, language, voice_name, speed, remove_silence)
+    audio_path=save_files[0]
+    word_level_srt=save_files[1]
+    sentence_level_srt=save_files[2]
+    timestamp_json=save_files[3]
     print(f"Audio file saved at: {audio_path}")
+    print(f"Word-level SRT file saved at: {word_level_srt}")
+    print(f"Sentence-level SRT file saved at: {sentence_level_srt}")
+    print(f"Timestamp JSON file saved at: {timestamp_json}")
 
-
-
-# languages = [
-#     "American English",
-#     "British English",
-#     "Hindi",
-#     "Spanish",
-#     "French",
-#     "Italian",
-#     "Brazilian Portuguese",
-#     "Japanese",
-#     "Mandarin Chinese"
-# ]
