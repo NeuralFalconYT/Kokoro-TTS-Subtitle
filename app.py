@@ -572,8 +572,8 @@ def main(debug, share):
     demo1 = ui()
     demo2 = tutorial()
     demo = gr.TabbedInterface([demo1, demo2],["Multilingual TTS","VoicePack Explanation"],title="Kokoro TTS",theme='JohnSmith9982/small_and_pretty')
-    # demo.queue().launch(debug=debug, share=share)
-    demo.queue().launch(debug=debug, share=share,server_port=9000)
+    demo.queue().launch(debug=debug, share=share)
+    # demo.queue().launch(debug=debug, share=share,server_port=9000)
     #Run on local network
     # laptop_ip="192.168.0.30"
     # port=8080
