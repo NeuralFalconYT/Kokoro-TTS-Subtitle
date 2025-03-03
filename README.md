@@ -67,7 +67,7 @@ Alternative ways to use Kokoro-TTS [kokoro-onnx](https://github.com/thewh1teagle
 4. **Install eSpeak NG**
 
 - **For Windows:**
-  1. Download the eSpeak NG 1.50 release from the [eSpeak NG GitHub Releases](https://github.com/espeak-ng/espeak-ng/releases/tag/1.50).
+  1. Download the eSpeak NG 1.50 release from the [eSpeak NG GitHub Releases](https://github.com/espeak-ng/espeak-ng/releases/tag/1.50). [Or, You can try eSpeak NG latest Version]
   2. Locate and download the file named **`espeak-ng-X64.msi`**.
   3. Run the installer and follow the installation steps. Ensure that you install eSpeak NG in the default directory:
      ```
