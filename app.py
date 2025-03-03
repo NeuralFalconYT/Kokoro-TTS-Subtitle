@@ -523,7 +523,7 @@ def ui():
                     autoplay.change(toggle_autoplay, inputs=[autoplay], outputs=[audio])
                     word_level_srt_file = gr.File(label='📝 Download Word-Level SRT')
                     srt_file = gr.File(label='📜 Download Sentence-Level SRT')
-                    sentence_duration_file = gr.File(label='⏳ Download Sentence Duration JSON')
+                    sentence_duration_file = gr.File(label='⏳ Download Sentence Timestamp JSON')
 
         text.submit(subtile_update, inputs=[text, language_name, voice_name, speed, remove_silence], outputs=[audio, audio_file,word_level_srt_file,srt_file,sentence_duration_file])
         generate_btn.click(subtile_update, inputs=[text, language_name, voice_name, speed, remove_silence], outputs=[audio, audio_file,word_level_srt_file,srt_file,sentence_duration_file])
