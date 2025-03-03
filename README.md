@@ -5,10 +5,13 @@
 
 Alternative ways to use Kokoro-TTS [kokoro-onnx](https://github.com/thewh1teagle/kokoro-onnx), [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI), [kokoro](https://github.com/hexgrad/kokoro)
 
+![app](https://github.com/user-attachments/assets/e08b9a2f-9e3d-4281-a39f-8c4ee5a0f681)
+
+
 ## Installation
 
 ### Prerequisites
-- Minimum Python 3.10
+- At least Python 3.10
 - Git
 - (Optional) Virtual Environment for dependency isolation
 
@@ -121,7 +124,7 @@ Alternative ways to use Kokoro-TTS [kokoro-onnx](https://github.com/thewh1teagle
 That's it! You've successfully removed everything.
 
 
-![app](https://github.com/user-attachments/assets/24083a69-14d5-4d1d-83b3-7eb5ee564134)
+
 
 
 
