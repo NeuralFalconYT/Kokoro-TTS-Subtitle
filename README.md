@@ -121,6 +121,9 @@ Alternative ways to use Kokoro-TTS [kokoro-onnx](https://github.com/thewh1teagle
 That's it! You've successfully removed everything.
 
 
+![app](https://github.com/user-attachments/assets/24083a69-14d5-4d1d-83b3-7eb5ee564134)
+
+
 
 ## License
 [Kokoro model](https://huggingface.co/hexgrad/Kokoro-82M) is licensed under the [Apache License 2.0]
