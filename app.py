@@ -463,7 +463,7 @@ def save_current_data():
     os.makedirs("./last",exist_ok=True)
     
      
-def subtile_update(text, Language="American English",voice="af_bella", speed=1,translate_text=False,remove_silence=False,keep_silence_up_to=0.05):
+def KOKORO_TTS_API(text, Language="American English",voice="af_bella", speed=1,translate_text=False,remove_silence=False,keep_silence_up_to=0.05):
     if translate_text:    
         text=bulk_translate(text, Language, chunk_size=500)
     save_path,timestamps=generate_and_save_audio(text=text, Language=Language,voice=voice, speed=speed,remove_silence=remove_silence,keep_silence_up_to=keep_silence_up_to)
@@ -542,8 +542,8 @@ def ui():
                     srt_file = gr.File(label='📜 Download Sentence-Level SRT')
                     sentence_duration_file = gr.File(label='⏳ Download Sentence Timestamp JSON')
 
-        text.submit(subtile_update, inputs=[text, language_name, voice_name, speed,translate_text, remove_silence], outputs=[audio, audio_file,word_level_srt_file,srt_file,sentence_duration_file])
-        generate_btn.click(subtile_update, inputs=[text, language_name, voice_name, speed,translate_text, remove_silence], outputs=[audio, audio_file,word_level_srt_file,srt_file,sentence_duration_file])
+        text.submit(KOKORO_TTS_API, inputs=[text, language_name, voice_name, speed,translate_text, remove_silence], outputs=[audio, audio_file,word_level_srt_file,srt_file,sentence_duration_file])
+        generate_btn.click(KOKORO_TTS_API, inputs=[text, language_name, voice_name, speed,translate_text, remove_silence], outputs=[audio, audio_file,word_level_srt_file,srt_file,sentence_duration_file])
 
         # Add examples to the interface
         gr.Examples(examples=dummy_examples, inputs=[text, language_name, voice_name])
