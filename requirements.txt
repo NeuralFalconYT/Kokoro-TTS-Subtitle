@@ -2,3 +2,5 @@ kokoro>=0.3.1
 gradio>=5.9.1
 pydub>=0.25.1
 click
+misaki[zh]
+misaki[ja]
