@@ -7,24 +7,26 @@ output_dir = "./api_output"
 os.makedirs(output_dir, exist_ok=True)
 
 # paste here the gradio app url
-api_url = "http://127.0.0.1:9000/"
+api_url = "https://7194ed6cc0b6cb4724.gradio.live/"
 
 client = Client(api_url)
 
 def text_to_speech(
     text="Hello",
     language="American English",
-    voice_name="af_nicole",
+    voice_name="af_bella",
     speed=1,
+    auto_translate=False,
     remove_silence=False,
 ):
     result = client.predict(
-        text=text,
-        Language=language,
-        voice=voice_name,
-        speed=speed,
-        remove_silence=remove_silence,
-        api_name="/subtile_update_1"
+		text=text,
+		Language=language,
+		voice=voice_name,
+		speed=speed,
+		translate_text=auto_translate,
+		remove_silence=remove_silence,
+		api_name="/KOKORO_TTS_API"
     )
 
     print(f"API Response: {result}")  # Debugging output
@@ -50,11 +52,12 @@ def text_to_speech(
 if __name__ == "__main__":
     text = "Hello, how are you?"
     language = "American English"
-    voice_name = "af_nicole"
+    voice_name = "af_bella"
     speed = 1
+    auto_translate = False
     remove_silence = False
 
-    save_files = text_to_speech(text, language, voice_name, speed, remove_silence)
+    save_files = text_to_speech(text, language, voice_name, speed, auto_translate, remove_silence)
     audio_path=save_files[0]
     word_level_srt=save_files[1]
     sentence_level_srt=save_files[2]
@@ -63,4 +66,3 @@ if __name__ == "__main__":
     print(f"Word-level SRT file saved at: {word_level_srt}")
     print(f"Sentence-level SRT file saved at: {sentence_level_srt}")
     print(f"Timestamp JSON file saved at: {timestamp_json}")
-
