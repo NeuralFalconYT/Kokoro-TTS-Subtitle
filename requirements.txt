@@ -4,3 +4,4 @@ pydub>=0.25.1
 click
 misaki[zh]
 misaki[ja]
+deep_translator==1.11.4
