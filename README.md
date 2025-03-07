@@ -5,7 +5,7 @@
 
 Alternative ways to use Kokoro-TTS [kokoro-onnx](https://github.com/thewh1teagle/kokoro-onnx), [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI), [kokoro](https://github.com/hexgrad/kokoro)
 
-![app](https://github.com/user-attachments/assets/e08b9a2f-9e3d-4281-a39f-8c4ee5a0f681)
+![app](https://github.com/user-attachments/assets/e8419b62-a2bc-4be6-a321-ea4dbf610362)
 
 
 ## Installation
