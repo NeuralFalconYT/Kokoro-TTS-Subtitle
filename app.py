@@ -22,43 +22,21 @@ language_map = {
     "Mandarin Chinese": "z"
 }
 
-# Print installation instructions if necessary
-install_messages = {
-    "Japanese": "pip install misaki[ja]",
-    "Mandarin Chinese": "pip install misaki[zh]"
-}
-
-
 
 def update_pipeline(Language):
     """ Updates the pipeline only if the language has changed. """
     global pipeline, last_used_language
-
-    # Print installation instructions if necessary
-    if Language in install_messages:
-        # raise gr.Error(f"To Use {Language} Install: {install_messages[Language]}",duration=10)
-        gr.Warning(f"To Use {Language} Install: {install_messages[Language]}",duration=10)
-        # gr.Warning("Reverting to default English pipeline...", duration=5)
-        # print(f"To use {Language}, install: {install_messages[Language]}")
-        # print("Reverting to default English pipeline...")
-        
-
-        # Revert to default English and return immediately
-        pipeline = KPipeline(lang_code="a")
-        last_used_language = "a"
-        return  
-
     # Get language code, default to 'a' if not found
     new_lang = language_map.get(Language, "a")
 
     # Only update if the language is different
     if new_lang != last_used_language:
+        pipeline = KPipeline(lang_code=new_lang)
+        last_used_language = new_lang 
         try:
             pipeline = KPipeline(lang_code=new_lang)
             last_used_language = new_lang  # Update last used language
-            # print(f"Pipeline updated to {Language} ({new_lang})")
         except Exception as e:
-            print(f"Error initializing KPipeline: {e}\nRetrying with default language...")
             pipeline = KPipeline(lang_code="a")  # Fallback to English
             last_used_language = "a"
 
@@ -118,15 +96,15 @@ def clean_text(text):
 
     return text
 
-def tts_file_name(text):
+def tts_file_name(text,language):
     global temp_folder
     # Remove all non-alphabetic characters and convert to lowercase
     text = re.sub(r'[^a-zA-Z\s]', '', text)  # Retain only alphabets and spaces
     text = text.lower().strip()             # Convert to lowercase and strip leading/trailing spaces
     text = text.replace(" ", "_")           # Replace spaces with underscores
-    
+    language=language.replace(" ", "_").strip()   
     # Truncate or handle empty text
-    truncated_text = text[:20] if len(text) > 20 else text if len(text) > 0 else "empty"
+    truncated_text = text[:20] if len(text) > 20 else text if len(text) > 0 else language
     
     # Generate a random string for uniqueness
     random_string = uuid.uuid4().hex[:8].upper()
@@ -162,7 +140,7 @@ def generate_and_save_audio(text, Language="American English",voice="af_bella", 
     text=clean_text(text)
     update_pipeline(Language)
     generator = pipeline(text, voice=voice, speed=speed, split_pattern=r'\n+')
-    save_path=tts_file_name(text)
+    save_path=tts_file_name(text,Language)
     # Open the WAV file for writing
     timestamps={}
     with wave.open(save_path, 'wb') as wav_file:
