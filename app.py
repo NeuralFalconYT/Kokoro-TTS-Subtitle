@@ -9,6 +9,40 @@ import re
 import gradio as gr
 
 
+#translate langauge 
+from deep_translator import GoogleTranslator
+def bulk_translate(text, target_language, chunk_size=500):
+    language_map_local = {
+    "American English": "en",  
+    "British English": "en",  
+    "Hindi": "hi",
+    "Spanish": "es",
+    "French": "fr",
+    "Italian": "it",
+    "Brazilian Portuguese": "pt-BR",
+    "Japanese": "ja",
+    "Mandarin Chinese": "zh-CN"
+    }
+    # lang_code = GoogleTranslator().get_supported_languages(as_dict=True).get(target_language.lower())
+    lang_code=language_map_local[target_language]
+    sentences = re.split(r'(?<=[.!?])\s+', text)  # Split text into sentences
+    chunks = []
+    current_chunk = ""
+
+    for sentence in sentences:
+        if len(current_chunk) + len(sentence) <= chunk_size:
+            current_chunk += " " + sentence
+        else:
+            chunks.append(current_chunk.strip())
+            current_chunk = sentence
+
+    if current_chunk:
+        chunks.append(current_chunk.strip())
+
+    translated_chunks = [GoogleTranslator(target=lang_code).translate(chunk) for chunk in chunks]
+    result=" ".join(translated_chunks)
+    return result.strip()
+    
 # Language mapping dictionary
 language_map = {
     "American English": "a",
@@ -37,6 +71,8 @@ def update_pipeline(Language):
             pipeline = KPipeline(lang_code=new_lang)
             last_used_language = new_lang  # Update last used language
         except Exception as e:
+            gr.Warning(f"Make sure the input text is in {Language}",duration=10)
+            gr.Warning(f"Fallback to English Language",duration=5)
             pipeline = KPipeline(lang_code="a")  # Fallback to English
             last_used_language = "a"
 
@@ -427,7 +463,9 @@ def save_current_data():
     os.makedirs("./last",exist_ok=True)
     
      
-def subtile_update(text, Language="American English",voice="af_bella", speed=1,remove_silence=False,keep_silence_up_to=0.05):
+def subtile_update(text, Language="American English",voice="af_bella", speed=1,translate_text=False,remove_silence=False,keep_silence_up_to=0.05):
+    if translate_text:    
+        text=bulk_translate(text, Language, chunk_size=500)
     save_path,timestamps=generate_and_save_audio(text=text, Language=Language,voice=voice, speed=speed,remove_silence=remove_silence,keep_silence_up_to=keep_silence_up_to)
     if remove_silence==False:
         if Language in ["American English", "British English"]:
@@ -488,6 +526,7 @@ def ui():
 
                 with gr.Accordion('🎛️ Audio Settings', open=False):
                     speed = gr.Slider(minimum=0.25, maximum=2, value=1, step=0.1, label='⚡️Speed', info='Adjust the speaking speed')
+                    translate_text = gr.Checkbox(value=False, label='🌐 Translate Text to Selected Language')
                     remove_silence = gr.Checkbox(value=False, label='✂️ Remove Silence From TTS')
 
             with gr.Column():
@@ -503,8 +542,8 @@ def ui():
                     srt_file = gr.File(label='📜 Download Sentence-Level SRT')
                     sentence_duration_file = gr.File(label='⏳ Download Sentence Timestamp JSON')
 
-        text.submit(subtile_update, inputs=[text, language_name, voice_name, speed, remove_silence], outputs=[audio, audio_file,word_level_srt_file,srt_file,sentence_duration_file])
-        generate_btn.click(subtile_update, inputs=[text, language_name, voice_name, speed, remove_silence], outputs=[audio, audio_file,word_level_srt_file,srt_file,sentence_duration_file])
+        text.submit(subtile_update, inputs=[text, language_name, voice_name, speed,translate_text, remove_silence], outputs=[audio, audio_file,word_level_srt_file,srt_file,sentence_duration_file])
+        generate_btn.click(subtile_update, inputs=[text, language_name, voice_name, speed,translate_text, remove_silence], outputs=[audio, audio_file,word_level_srt_file,srt_file,sentence_duration_file])
 
         # Add examples to the interface
         gr.Examples(examples=dummy_examples, inputs=[text, language_name, voice_name])
