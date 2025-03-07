@@ -19,7 +19,7 @@ def bulk_translate(text, target_language, chunk_size=500):
     "Spanish": "es",
     "French": "fr",
     "Italian": "it",
-    "Brazilian Portuguese": "pt-BR",
+    "Brazilian Portuguese": "pt",
     "Japanese": "ja",
     "Mandarin Chinese": "zh-CN"
     }
