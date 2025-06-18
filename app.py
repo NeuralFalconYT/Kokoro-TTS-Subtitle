@@ -1,3 +1,4 @@
+
 # Initalize a pipeline
 from kokoro import KPipeline
 # from IPython.display import display, Audio
@@ -172,6 +173,7 @@ def remove_silence_function(file_path,minimum_silence=50):
         combined += chunk
     combined.export(output_path, format=audio_format)
     return output_path
+
 def generate_and_save_audio(text, Language="American English",voice="af_bella", speed=1,remove_silence=False,keep_silence_up_to=0.05):
     text=clean_text(text)
     update_pipeline(Language)
@@ -200,6 +202,8 @@ def generate_and_save_audio(text, Language="American English",voice="af_bella", 
           audio_int16 = (audio_np * 32767).astype(np.int16)  # Scale to 16-bit range
           audio_bytes = audio_int16.tobytes()  # Convert to bytes
           # Write the audio chunk to the WAV file
+          duration_sec = len(audio_np) / 24000
+          timestamps[i]["duration"] = duration_sec
           wav_file.writeframes(audio_bytes)
     if remove_silence:            
       keep_silence = int(keep_silence_up_to * 1000)
@@ -207,37 +211,42 @@ def generate_and_save_audio(text, Language="American English",voice="af_bella", 
       return new_wave_file,timestamps
     return save_path,timestamps
 
+
+
 def adjust_timestamps(timestamp_dict):
     adjusted_timestamps = []
-    last_end_time = 0  # Tracks the last word's end time
+    last_global_end = 0  # Cumulative audio timeline
 
     for segment_id in sorted(timestamp_dict.keys()):
         segment = timestamp_dict[segment_id]
         words = segment["words"]
+        chunk_duration = segment["duration"]
 
-        for word_entry in words:
-            # Skip word entries with start or end time as None or 0
-            if word_entry["start"] in [None, 0] and word_entry["end"] in [None, 0]:
-                continue
+        # If there are valid words, get last word end
+        last_word_end_in_chunk = (
+            max(w["end"] for w in words if w["end"] not in [None, 0])
+            if words else 0
+        )
 
-            # Fill in None values with the last valid timestamp or use 0 as default
-            word_start = word_entry["start"] if word_entry["start"] is not None else last_end_time
-            word_end = word_entry["end"] if word_entry["end"] is not None else word_start  # Use word_start if end is None
+        silence_gap = chunk_duration - last_word_end_in_chunk
+        if silence_gap < 0:  # In rare cases where end > duration (due to rounding)
+            silence_gap = 0
 
-            new_start = word_start + last_end_time
-            new_end = word_end + last_end_time
+        for word in words:
+            start = word["start"] or 0
+            end = word["end"] or start
 
             adjusted_timestamps.append({
-                "word": word_entry["word"],
-                "start": round(new_start, 3),
-                "end": round(new_end, 3)
+                "word": word["word"],
+                "start": round(last_global_end + start, 3),
+                "end": round(last_global_end + end, 3)
             })
 
-        # Update last_end_time to the last word's end time in this segment
-        if words:
-            last_end_time = adjusted_timestamps[-1]["end"]
+        # Add entire chunk duration to global end
+        last_global_end += chunk_duration
 
     return adjusted_timestamps
+
 
 
 import string
@@ -272,6 +281,30 @@ def write_word_srt(word_level_timestamps, output_file="word.srt", skip_punctuati
             index += 1  # Increment subtitle number
 
 import string
+
+
+def split_line_by_char_limit(text, max_chars=30):
+    words = text.split()
+    lines = []
+    current_line = ""
+
+    for word in words:
+        if len(current_line + " " + word) <= max_chars:
+            current_line = (current_line + " " + word).strip()
+        else:
+            lines.append(current_line)
+            current_line = word
+
+    if current_line:
+        # Check if last line is a single word and there is a previous line
+        if len(current_line.split()) == 1 and len(lines) > 0:
+            # Append single word to previous line
+            lines[-1] += " " + current_line
+        else:
+            lines.append(current_line)
+
+    return "\n".join(lines)
+
 
 def write_sentence_srt(word_level_timestamps, output_file="subtitles.srt", max_words=8, min_pause=0.1):
     subtitles = []  # Stores subtitle blocks
@@ -338,6 +371,7 @@ def write_sentence_srt(word_level_timestamps, output_file="subtitles.srt", max_w
     # Write subtitles to SRT file
     with open(output_file, "w", encoding="utf-8") as f:
         for i, (start, end, text) in enumerate(subtitles, start=1):
+            text=split_line_by_char_limit(text, max_chars=30)
             f.write(f"{i}\n{format_srt_time(start)} --> {format_srt_time(end)}\n{text}\n\n")
 
     # print(f"SRT file '{output_file}' created successfully!")
@@ -586,6 +620,7 @@ import click
 @click.option("--debug", is_flag=True, default=False, help="Enable debug mode.")
 @click.option("--share", is_flag=True, default=False, help="Enable sharing of the interface.")
 def main(debug, share):
+# def main(debug=True, share=True):
     demo1 = ui()
     demo2 = tutorial()
     demo = gr.TabbedInterface([demo1, demo2],["Multilingual TTS","VoicePack Explanation"],title="Kokoro TTS")#,theme='JohnSmith9982/small_and_pretty')
