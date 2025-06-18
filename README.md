@@ -19,8 +19,8 @@ Alternative ways to use Kokoro-TTS [kokoro-onnx](https://github.com/thewh1teagle
 
 1. **Clone the Repository**
    ```sh
-   git clone https://github.com/NeuralFalconYT/kokoro_v1.git
-   cd kokoro_v1
+   https://github.com/NeuralFalconYT/Kokoro-TTS-Subtitle.git
+   cd Kokoro-TTS-Subtitle
    ```
 
 2. **(Optional) Create and Activate a Virtual Environment**
