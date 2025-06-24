@@ -1,4 +1,3 @@
-%cd /content/Kokoro-TTS-Subtitle
 # Initalize a pipeline
 from kokoro import KPipeline
 # from IPython.display import display, Audio
