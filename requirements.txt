@@ -5,4 +5,5 @@ click
 misaki[zh]
 misaki[ja]
 deep_translator==1.11.4
-pysrt
+pysrt>=1.1.2
+librosa>=0.11.0
