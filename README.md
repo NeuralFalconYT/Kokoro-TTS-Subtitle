@@ -1,12 +1,14 @@
-# Run Kokoro TTS V1.0
+# Kokoro TTS V1.0 with Subtitle & SRT Dubbing
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/NeuralFalconYT/Kokoro-TTS-Subtitle/blob/main/Kokoro_82M_v1_0.ipynb) <br>
 [![HuggingFace Space Demo](https://img.shields.io/badge/🤗-Space%20demo-yellow)](https://huggingface.co/spaces/NeuralFalcon/Kokoro-TTS-Subtitle)
 
 Alternative ways to use Kokoro-TTS [kokoro-onnx](https://github.com/thewh1teagle/kokoro-onnx), [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI), [kokoro](https://github.com/hexgrad/kokoro)
 
-![app](https://github.com/user-attachments/assets/e8419b62-a2bc-4be6-a321-ea4dbf610362)
 
+![app](https://github.com/user-attachments/assets/a33decd0-6e60-4fda-aceb-9bd4485b8ca9)
+
+![srt dub](https://github.com/user-attachments/assets/04a0a26f-ca3a-404a-b642-ccdf23938e9a)
 
 ## Installation
 
