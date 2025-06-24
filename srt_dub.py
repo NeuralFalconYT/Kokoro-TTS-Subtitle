@@ -854,7 +854,7 @@ def srt_process(srt_path, Language="American English", voice_name="af_bella", tr
     output_path = get_subtitle_Dub_path(srt_path, Language)
 
     SRTDubbing(use_ffmpeg, ffmpeg_path).srt_to_dub(processed_srt, output_path, Language, voice_name)
-    return output_path
+    return output_path,output_path
 
 def subtitle_ui():
   with gr.Blocks() as demo:
@@ -870,10 +870,10 @@ def subtitle_ui():
       with gr.Row():
           with gr.Column():
               srt_file = gr.File(label='Upload .srt Subtitle File Only')
-              with gr.Row():
-                      language_name = gr.Dropdown(lang_list, label="🌍 Select Language", value=lang_list[0])
-              with gr.Row():
-                  voice = gr.Dropdown(
+              # with gr.Row():
+              language_name = gr.Dropdown(lang_list, label="🌍 Select Language", value=lang_list[0])
+              # with gr.Row():
+              voice = gr.Dropdown(
                       voice_names, 
                       value='af_bella', 
                       allow_custom_value=False, 
@@ -883,12 +883,13 @@ def subtitle_ui():
                   generate_btn_ = gr.Button('Generate', variant='primary')
 
               with gr.Accordion('Other Settings', open=False):
-                  translate_text = gr.Checkbox(value=False, label='🌐 Translate Text to Selected Language')
+                  translate_text = gr.Checkbox(value=False, label='🌐 Translate Subtitle to Selected Language')
                   
               
               
           with gr.Column():
               audio = gr.Audio(interactive=False, label='Output Audio', autoplay=True)
+              audio_file = gr.File(label='📥 Download Audio')
               with gr.Accordion('Enable Autoplay', open=False):
                   autoplay = gr.Checkbox(value=True, label='Autoplay')
                   autoplay.change(toggle_autoplay, inputs=[autoplay], outputs=[audio])
@@ -901,7 +902,7 @@ def subtitle_ui():
       generate_btn_.click(
           srt_process, 
           inputs=[srt_file,language_name,voice,translate_text], 
-          outputs=[audio]
+          outputs=[audio,audio_file]
       )
       return demo
     
