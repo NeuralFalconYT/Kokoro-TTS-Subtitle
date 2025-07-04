@@ -1058,7 +1058,7 @@ def subtitle_ui():
                   generate_btn_ = gr.Button('Generate', variant='primary')
 
               with gr.Accordion('Other Settings', open=False):
-                  speaker_speed_ = gr.Checkbox(value=True, label="⚡ Match With Apeaker's Average Talking Speed")
+                  speaker_speed_ = gr.Checkbox(value=True, label="⚡ Match With Speaker Average Talking Speed")
                   translate_text = gr.Checkbox(value=False, label='🌐 Translate Subtitle to Selected Language')
 
 
