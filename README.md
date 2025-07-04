@@ -120,11 +120,39 @@ Alternative ways to use Kokoro-TTS [kokoro-onnx](https://github.com/thewh1teagle
    ```bash
    pip uninstall torch
    ```
-##### To clear the HuggingFace cache models:
+#### To clear the HuggingFace cache models:
    - Navigate to `C:\Users\<username>\.cache\huggingface\hub`
    - Delete the contents of the `hub` folder.
 That's it! You've successfully removed everything.
 
+
+
+
+
+
+
+### 🛠️ Fix for Japanese Audio Generation Error
+
+If you encounter an error while generating Japanese audio, try the following steps:
+
+1. **Uninstall existing `unidic`:**
+
+   ```bash
+   pip uninstall unidic -y
+   ```
+
+2. **Reinstall `unidic`:**
+
+   ```bash
+   pip install unidic
+   ```
+
+3. **Download the dictionary data:**
+
+   ```bash
+   python -m unidic download
+   ```
+Note: This solution is likely to work, the same issue has been observed on both Colab and Hugging Face.
 
 
 
