@@ -624,6 +624,12 @@ def tutorial():
     return demo2
 
 
+
+
+
+
+
+
 #@title subtitle
 import os
 import re
@@ -632,7 +638,8 @@ import shutil
 import platform
 import datetime
 import subprocess
-
+import math
+import json
 import pysrt
 import librosa
 import soundfile as sf
@@ -640,11 +647,13 @@ from tqdm.auto import tqdm
 from pydub import AudioSegment
 from deep_translator import GoogleTranslator
 
-
 # ---------------------- Utility Functions ----------------------
+
+# Returns the current time formatted as HH_MM_AM/PM (for filenames or logs)
 def get_current_time():
     return datetime.datetime.now().strftime("%I_%M_%p")
 
+# Constructs an output file path for the final dubbed audio
 def get_subtitle_Dub_path(srt_file_path, Language):
     file_name = os.path.splitext(os.path.basename(srt_file_path))[0]
     full_base_path = os.path.join(os.getcwd(), "TTS_DUB")
@@ -654,6 +663,7 @@ def get_subtitle_Dub_path(srt_file_path, Language):
     new_path = os.path.join(full_base_path, f"{file_name}_{lang}_{random_string}.wav")
     return new_path.replace("__", "_")
 
+# Removes noise characters like [♫] from the subtitle text and saves a cleaned SRT
 def clean_srt(input_path):
     def clean_srt_line(text):
         for bad in ["[", "]", "♫"]:
@@ -667,16 +677,20 @@ def clean_srt(input_path):
             file.write(f"{sub.index}\n{sub.start} --> {sub.end}\n{clean_srt_line(sub.text)}\n\n")
     return output_path
 
+# Translates subtitles using Deep Translator while preserving subtitle index order
 def translate_srt(input_path, target_language="Hindi", max_segments=500, chunk_size=4000):
     output_path = input_path.replace(".srt", f"{target_language}.srt")
     subs = pysrt.open(input_path, encoding='utf-8')
+    #Blocking large text translations to prevent DDoS, so Google Translate remains free forever.
     if len(subs) > max_segments:
         gr.Warning(f"Too many segments: {len(subs)} > {max_segments}. Skipping translation.")
         return input_path
 
+    # Annotate original subtitles with <#index> to preserve mapping during translation
     original = [f"<#{i}>{s.text}" for i, s in enumerate(subs)]
     full_text = "\n".join(original)
 
+    # Split into manageable chunks for Google Translate API
     chunks, start = [], 0
     while start < len(full_text):
         end = start + chunk_size
@@ -688,20 +702,24 @@ def translate_srt(input_path, target_language="Hindi", max_segments=500, chunk_s
     translated_chunks = [GoogleTranslator(target=lang_code).translate(chunk) for chunk in chunks]
     translated_text = "\n".join(translated_chunks)
 
+    # Rebuild subtitle dictionary after translation
     pattern = re.compile(r"<#(\d+)>(.*?)(?=<#\d+>|$)", re.DOTALL)
     translated_dict = {int(i): txt.strip() for i, txt in pattern.findall(translated_text)}
 
+    # Assign translated text back to subtitle entries
     for i, sub in enumerate(subs):
         sub.text = translated_dict.get(i, sub.text)
 
     subs.save(output_path, encoding='utf-8')
     return output_path
 
+# Cleans and optionally translates an SRT file before dubbing
 def prepare_srt(srt_path, target_language, translate=False):
     path = clean_srt(srt_path)
     return translate_srt(path, target_language) if translate else path
 
-
+# Checks if FFmpeg is available on the system; if not, warns user and returns fallback
+# To change audio speed explicitly, we can use either FFmpeg or Librosa.
 def is_ffmpeg_installed():
     ffmpeg_exe = "ffmpeg.exe" if platform.system() == "Windows" else "ffmpeg"
     try:
@@ -711,6 +729,21 @@ def is_ffmpeg_installed():
         gr.Warning("FFmpeg not found. Falling back to librosa for audio speedup.", duration=20)
         return False, ffmpeg_exe
 
+# Because FFmpeg can handle speeds from 0.5× to 2.0× only
+def atempo_chain(factor):
+    if 0.5 <= factor <= 2.0:
+        return f"atempo={factor:.3f}"
+    parts = []
+    while factor > 2.0:
+        parts.append("atempo=2.0")
+        factor /= 2.0
+    while factor < 0.5:
+        parts.append("atempo=0.5")
+        factor *= 2.0
+    parts.append(f"atempo={factor:.3f}")
+    return ",".join(parts)
+
+# If FFmpeg is not found, we will use Librosa
 def speedup_audio_librosa(input_file, output_file, speedup_factor):
     try:
         y, sr = librosa.load(input_file, sr=None)
@@ -720,22 +753,28 @@ def speedup_audio_librosa(input_file, output_file, speedup_factor):
         gr.Warning(f"Librosa speedup failed: {e}")
         shutil.copy(input_file, output_file)
 
+# Change the audio speed if it exceeds the original SRT segment duration.
 def change_speed(input_file, output_file, speedup_factor, use_ffmpeg, ffmpeg_path):
     if use_ffmpeg:
         try:
-            subprocess.run([ffmpeg_path, "-i", input_file, "-filter:a", f"atempo={speedup_factor}", output_file, "-y"], check=True)
+            subprocess.run(
+                [ffmpeg_path, "-i", input_file, "-filter:a", atempo_chain(speedup_factor), output_file, "-y"],
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
         except Exception as e:
             gr.Error(f"FFmpeg speedup error: {e}")
             speedup_audio_librosa(input_file, output_file, speedup_factor)
     else:
         speedup_audio_librosa(input_file, output_file, speedup_factor)
 
+# Remove silence from the start and end of the audio.
 def remove_edge_silence(input_path, output_path):
     y, sr = librosa.load(input_path, sr=None)
     trimmed_audio, _ = librosa.effects.trim(y, top_db=30)
     sf.write(output_path, trimmed_audio, sr)
     return output_path
-
 
 # ---------------------- Main Class ----------------------
 class SRTDubbing:
@@ -747,16 +786,63 @@ class SRTDubbing:
         os.makedirs(self.cache_dir, exist_ok=True)
 
     @staticmethod
+    # Because our target is single-speaker SRT dubbing,
+    # we will calculate the speaker's average talking speed per second.
+    def get_avg_speaker_speed(srt_path):
+        subs = pysrt.open(srt_path, encoding='utf-8')
+        speeds = []
+        for sub in subs:
+            duration_sec = (sub.end.ordinal - sub.start.ordinal) / 1000
+            char_count = len(sub.text.replace(" ", ""))
+            if duration_sec > 0 and char_count > 0:
+                speeds.append(char_count / duration_sec)
+        return sum(speeds) / len(speeds) if speeds else 14
+
+    @staticmethod
+    # Calculate the speaker's default talking speed (e.g., 0.5x, 1x, 1.5x)
+    def get_speed_factor(srt_path, default_tts_rate=14):
+        avg_rate = SRTDubbing.get_avg_speaker_speed(srt_path)
+        speed_factor = avg_rate / default_tts_rate if default_tts_rate > 0 else 1.0
+        return math.floor(speed_factor * 100) / 100  # Truncate
+
+    @staticmethod
+    # Merge multiple SRT segments if the gap is small and total duration
+    # stays under N milliseconds
+    def merge_fast_entries(entries, max_pause_gap=1000, max_merged_duration_ms=8000):
+        merged = []
+        i = 0
+        n = len(entries)
+        while i < n:
+            curr = entries[i].copy()
+            j = i + 1
+            while j < n:
+                next_ = entries[j]
+                gap = next_["start_time"] - curr["end_time"]
+                new_duration = next_["end_time"] - curr["start_time"]
+                if gap > max_pause_gap or new_duration > max_merged_duration_ms:
+                    break
+                if not curr["text"].strip().endswith((".", "!", "?")):
+                    curr["text"] = curr["text"].strip() + ","
+                curr["text"] += " " + next_["text"]
+                curr["end_time"] = next_["end_time"]
+                j += 1
+            merged.append(curr)
+            i = j
+        return merged
+
+    @staticmethod
+    # Convert SRT timestamp to milliseconds
     def convert_to_millisecond(t):
         return t.hours * 3600000 + t.minutes * 60000 + t.seconds * 1000 + int(t.milliseconds)
 
-    @staticmethod
-    def read_srt_file(file_path):
+    # Read SRT file and convert it to our required dictionary format for dubbing
+    def read_srt_file(self, file_path):
         subs = pysrt.open(file_path, encoding='utf-8')
         entries = []
         prev_end = 0
         for idx, sub in enumerate(subs, 1):
-            start, end = SRTDubbing.convert_to_millisecond(sub.start), SRTDubbing.convert_to_millisecond(sub.end)
+            start = self.convert_to_millisecond(sub.start)
+            end = self.convert_to_millisecond(sub.end)
             pause = start - prev_end if idx > 1 else start
             entries.append({
                 'entry_number': idx,
@@ -768,55 +854,133 @@ class SRTDubbing:
                 'previous_pause': f"{idx}_before_pause.wav",
             })
             prev_end = end
+
+        entries = self.merge_fast_entries(entries)
+
+        ## For debug
+        # with open("./old.json", "w", encoding="utf-8") as f:
+        #     json.dump(entries, f, indent=2, ensure_ascii=False)
+        # with open("/content/new.json", "w", encoding="utf-8") as f:
+        #     json.dump(entries, f, indent=2, ensure_ascii=False)
+
         return entries
 
-    def text_to_speech_srt(self, text, audio_path, language, voice, actual_duration):
-        temp = "./cache/temp.wav"
-        # Step 1: Generate initial audio
-        path, _ = generate_and_save_audio(text, Language=language, voice=voice, speed=1, remove_silence=False, keep_silence_up_to=0.05)
-        # ✂️ Remove leading and trailing silence to make timing tight without trimming actual speech.
-        remove_edge_silence(path, temp)
-        # 📏 Load the trimmed audio and get its duration in milliseconds.
-        audio = AudioSegment.from_file(temp)
+    # For TTS, modify this function in the future to use a different TTS or voice cloning tool
+    # def text_to_speech_srt(self, text, audio_path, language, voice, actual_duration, default_speed_factor=None):
+    #     temp = "./cache/temp.wav"
+    #     if default_speed_factor is None:
+    #         default_speed_factor = 1.0
 
-        # ⏱️ If no duration is specified (edge case), use the TTS as-is without speed/timing adjustments.
-        if actual_duration == 0:
+    #     # Step 1: Generate clean TTS audio at 1.0x speed (avoid Kokoro noise issue)
+    #     path, _ = generate_and_save_audio(text, Language=language, voice=voice, speed=1.0, remove_silence=False, keep_silence_up_to=0.05)
+
+    #     # Step 2: Always adjust the generated TTS to user's speaking speed
+    #     if default_speed_factor != 1.0:
+    #         temp_wav = path.replace(".wav", "_user_speed.wav")
+    #         change_speed(path, temp_wav, default_speed_factor, self.use_ffmpeg, self.ffmpeg_path)
+    #         path = temp_wav
+
+    #     # Step 3: Trim edges
+    #     remove_edge_silence(path, temp)
+    #     audio = AudioSegment.from_file(temp)
+
+    #     # Step 4: If no target duration given, save and exit
+    #     if actual_duration == 0:
+    #         shutil.move(temp, audio_path)
+    #         return
+
+    #     # Step 5: Try regeneration with silence removal if needed
+    #     if len(audio) > actual_duration:
+    #         path, _ = generate_and_save_audio(text, Language=language, voice=voice, speed=1.0, remove_silence=True, keep_silence_up_to=0.05)
+    #         if default_speed_factor != 1.0:
+    #             temp_wav = path.replace(".wav", "_tight_user_speed.wav")
+    #             change_speed(path, temp_wav, default_speed_factor, self.use_ffmpeg, self.ffmpeg_path)
+    #             path = temp_wav
+    #         remove_edge_silence(path, temp)
+    #         audio = AudioSegment.from_file(temp)
+
+    #     # Step 6: Final fallback — force compress audio to fit
+    #     if len(audio) > actual_duration:
+    #         factor = len(audio) / actual_duration
+    #         final_temp = "./cache/speedup_temp.wav"
+    #         change_speed(temp, final_temp, factor, self.use_ffmpeg, self.ffmpeg_path)
+    #         shutil.move(final_temp, audio_path)
+    #     elif len(audio) < actual_duration:
+    #         silence = AudioSegment.silent(duration=actual_duration - len(audio))
+    #         (audio + silence).export(audio_path, format="wav")
+    #     else:
+    #         shutil.move(temp, audio_path)
+
+
+    # For TTS, modify this function in the future to use a different TTS or voice cloning tool
+    def text_to_speech_srt(self, text, audio_path, language, voice, actual_duration, default_speed_factor=None):
+        import soundfile as sf
+        from librosa import get_duration
+
+        TOLERANCE_MS = 30
+        temp = os.path.join(self.cache_dir, "temp.wav")
+
+        if default_speed_factor is None:
+            default_speed_factor = 1.0
+
+        # Step 1: Generate clean TTS audio (Kokoro safe speed)
+        path, _ = generate_and_save_audio(
+            text, Language=language, voice=voice,
+            speed=1.0, remove_silence=False, keep_silence_up_to=0.05
+        )
+
+        # Step 2: Apply user-defined speaking speed
+        if default_speed_factor != 1.0:
+            user_speed_path = path.replace(".wav", "_user.wav")
+            change_speed(path, user_speed_path, default_speed_factor, self.use_ffmpeg, self.ffmpeg_path)
+            path = user_speed_path
+
+        # Step 3: Trim silence
+        remove_edge_silence(path, temp)
+
+        # Step 4: Duration analysis (high precision)
+        y, sr = sf.read(temp)
+        duration_ms = int(get_duration(y=y, sr=sr) * 1000)
+
+        # Step 5: If very close, skip correction
+        if abs(duration_ms - actual_duration) <= TOLERANCE_MS:
             shutil.move(temp, audio_path)
             return
 
-        # Step 2: If TTS audio is longer, retry with remove_silence=True
-        if len(audio) > actual_duration:
-            path, _ = generate_and_save_audio(text, Language=language, voice=voice, speed=1, remove_silence=True, keep_silence_up_to=0.05)
+        # Step 6: Try regenerating with silence removal if too long
+        if duration_ms > actual_duration:
+            path, _ = generate_and_save_audio(
+                text, Language=language, voice=voice,
+                speed=1.0, remove_silence=True, keep_silence_up_to=0.05
+            )
+            if default_speed_factor != 1.0:
+                tighter = path.replace(".wav", "_tight_user.wav")
+                change_speed(path, tighter, default_speed_factor, self.use_ffmpeg, self.ffmpeg_path)
+                path = tighter
             remove_edge_silence(path, temp)
-            audio = AudioSegment.from_file(temp)
+            y, sr = sf.read(temp)
+            duration_ms = int(get_duration(y=y, sr=sr) * 1000)
 
-        # Step 3: If still longer → speed up
-        if len(audio) > actual_duration:
-            factor = len(audio) / actual_duration
-            path, _ = generate_and_save_audio(text, Language=language, voice=voice, speed=factor, remove_silence=True, keep_silence_up_to=0.05)
-            remove_edge_silence(path, temp)
-            audio = AudioSegment.from_file(temp)
-
-        # Final Adjustment: Speed up via FFmpeg or librosa
-        if len(audio) > actual_duration:
-            factor = len(audio) / actual_duration
-            final_temp = "./cache/speedup_temp.wav"
-            change_speed(temp, final_temp, factor, self.use_ffmpeg, self.ffmpeg_path)
-            shutil.move(final_temp, audio_path)
-
-        # Add silence if too short
-        elif len(audio) < actual_duration:
-            silence = AudioSegment.silent(duration=actual_duration - len(audio))
-            (audio + silence).export(audio_path, format="wav")
-        # ➡️ Fallback: If TTS already perfectly matches subtitle duration, save as-is. 
+        # Step 7: Final correction
+        if duration_ms > actual_duration + TOLERANCE_MS:
+            factor = duration_ms / actual_duration
+            corrected = os.path.join(self.cache_dir, "speed_final.wav")
+            change_speed(temp, corrected, factor, self.use_ffmpeg, self.ffmpeg_path)
+            shutil.move(corrected, audio_path)
+        elif duration_ms < actual_duration - TOLERANCE_MS:
+            silence = AudioSegment.silent(duration=actual_duration - duration_ms)
+            (AudioSegment.from_file(temp) + silence).export(audio_path, format="wav")
         else:
-            shutil.move(temp, audio_path) #bad code
+            shutil.move(temp, audio_path)
+
 
     @staticmethod
+    # Insert silent gaps between two segments
     def make_silence(duration, path):
         AudioSegment.silent(duration=duration).export(path, format="wav")
 
     @staticmethod
+    # Srt save folder
     def create_folder_for_srt(srt_file_path):
         base = os.path.splitext(os.path.basename(srt_file_path))[0]
         folder = f"./dummy/{base}_{str(uuid.uuid4())[:4]}"
@@ -824,27 +988,30 @@ class SRTDubbing:
         return folder
 
     @staticmethod
+    # Join Chunks audio files
     def concatenate_audio_files(paths, output):
         audio = sum([AudioSegment.from_file(p) for p in paths], AudioSegment.silent(duration=0))
         audio.export(output, format="wav")
 
-    def srt_to_dub(self, srt_path, output_path, language, voice):
+    # Util funtion to call other funtions
+    def srt_to_dub(self, srt_path, output_path, language, voice,speaker_talk_speed=True):
         entries = self.read_srt_file(srt_path)
         folder = self.create_folder_for_srt(srt_path)
         all_audio = []
+        if speaker_talk_speed:
+          default_speed_factor = self.get_speed_factor(srt_path)
+        else:
+          default_speed_factor=1.0
         for entry in tqdm(entries):
             self.make_silence(entry['pause_time'], os.path.join(folder, entry['previous_pause']))
             all_audio.append(os.path.join(folder, entry['previous_pause']))
-
             tts_path = os.path.join(folder, entry['audio_name'])
-            self.text_to_speech_srt(entry['text'], tts_path, language, voice, entry['end_time'] - entry['start_time'])
+            self.text_to_speech_srt(entry['text'], tts_path, language, voice, entry['end_time'] - entry['start_time'], default_speed_factor)
             all_audio.append(tts_path)
-
         self.concatenate_audio_files(all_audio, output_path)
 
-
 # ---------------------- Entrypoint ----------------------
-def srt_process(srt_path, Language="American English", voice_name="af_bella", translate=False):
+def srt_process(srt_path, Language="American English", voice_name="af_bella", translate=False,speaker_talk_speed=True):
     if not srt_path.endswith(".srt"):
         gr.Error("Please upload a valid .srt file", duration=5)
         return None
@@ -853,8 +1020,16 @@ def srt_process(srt_path, Language="American English", voice_name="af_bella", tr
     processed_srt = prepare_srt(srt_path, Language, translate)
     output_path = get_subtitle_Dub_path(srt_path, Language)
 
-    SRTDubbing(use_ffmpeg, ffmpeg_path).srt_to_dub(processed_srt, output_path, Language, voice_name)
-    return output_path,output_path
+    SRTDubbing(use_ffmpeg, ffmpeg_path).srt_to_dub(processed_srt, output_path, Language, voice_name,speaker_talk_speed)
+    return output_path, output_path
+
+# Example usage
+# srt_file_path = "/content/last.srt" # @param {type: "string"}
+# dub_audio_path, _ = srt_process(srt_file_path, Language="American English", voice_name="af_bella", translate=False,speaker_talk_speed=False)
+# print(f"Audio file saved at: {dub_audio_path}")
+
+
+
 
 def subtitle_ui():
   with gr.Blocks() as demo:
@@ -862,9 +1037,9 @@ def subtitle_ui():
       gr.Markdown(
           """
           # Generate Audio File From Subtitle [Upload Only .srt file]
-          
-          To generate subtitles, you can use the [Whisper Turbo Subtitle](https://github.com/NeuralFalconYT/Whisper-Turbo-Subtitle) 
-          
+
+          To generate subtitles, you can use the [Whisper Turbo Subtitle](https://github.com/NeuralFalconYT/Whisper-Turbo-Subtitle)
+
           """
       )
       with gr.Row():
@@ -874,19 +1049,20 @@ def subtitle_ui():
               language_name = gr.Dropdown(lang_list, label="🌍 Select Language", value=lang_list[0])
               # with gr.Row():
               voice = gr.Dropdown(
-                      voice_names, 
-                      value='af_bella', 
-                      allow_custom_value=False, 
-                      label='🎙️ Choose VoicePack', 
+                      voice_names,
+                      value='af_bella',
+                      allow_custom_value=False,
+                      label='🎙️ Choose VoicePack',
                   )
               with gr.Row():
                   generate_btn_ = gr.Button('Generate', variant='primary')
 
               with gr.Accordion('Other Settings', open=False):
+                  speaker_speed_ = gr.Checkbox(value=True, label="⚡ Match With Apeaker's Average Talking Speed")
                   translate_text = gr.Checkbox(value=False, label='🌐 Translate Subtitle to Selected Language')
-                  
-              
-              
+
+
+
           with gr.Column():
               audio = gr.Audio(interactive=False, label='Output Audio', autoplay=True)
               audio_file = gr.File(label='📥 Download Audio')
@@ -895,23 +1071,18 @@ def subtitle_ui():
                   autoplay.change(toggle_autoplay, inputs=[autoplay], outputs=[audio])
 
       # srt_file.submit(
-      #     srt_process, 
-      #     inputs=[srt_file, voice], 
+      #     srt_process,
+      #     inputs=[srt_file, voice],
       #     outputs=[audio]
       # )
       generate_btn_.click(
-          srt_process, 
-          inputs=[srt_file,language_name,voice,translate_text], 
+          srt_process,
+          inputs=[srt_file,language_name,voice,translate_text,speaker_speed_],
           outputs=[audio,audio_file]
       )
       return demo
-    
 
 
-# Example usage:
-# srt_file_path = "/content/me.srt"
-# dub_audio_path = srt_process(srt_file_path, Language="American English", voice_name="af_bella", translate=False)
-# print(f"Audio file saved at: {dub_audio_path}")
 
 import click
 @click.command()
