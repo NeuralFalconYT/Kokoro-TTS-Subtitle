@@ -569,7 +569,7 @@ def ui():
                     generate_btn = gr.Button('🚀 Generate', variant='primary')
 
                 with gr.Accordion('🎛️ Audio Settings', open=False):
-                    speed = gr.Slider(minimum=0.25, maximum=2, value=1, step=0.1, label='⚡️Speed', info='Adjust the speaking speed')
+                    speed = gr.Slider(minimum=0.5, maximum=2, value=1, step=0.1, label='⚡️Speed', info='Adjust the speaking speed')
                     translate_text = gr.Checkbox(value=False, label='🌐 Translate Text to Selected Language')
                     remove_silence = gr.Checkbox(value=False, label='✂️ Remove Silence From TTS')
 
