@@ -1112,12 +1112,11 @@ def srt_process(srt_path, Language="American English", voice_name="af_bella", tr
 
 def subtitle_ui():
   with gr.Blocks() as demo:
-
       gr.Markdown(
           """
           # Generate Audio File From Subtitle [Upload Only .srt file]
 
-          To generate subtitles, you can use the [Whisper Turbo Subtitle](https://github.com/NeuralFalconYT/Whisper-Turbo-Subtitle)
+          To generate subtitles, you can use the [Whisper Turbo Subtitle](https://github.com/NeuralFalconYT/Auto-Subtitle-Generator-Free)
 
           """
       )
