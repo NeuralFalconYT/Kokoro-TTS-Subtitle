@@ -3,13 +3,13 @@ import os
 
 bat_content = """@echo off
 call myenv\\Scripts\\activate
-@python.exe app.py %*
+@python.exe beta.py %*
 @pause
 """
 
 sh_content = """#!/bin/bash
 source myenv/bin/activate
-python3 app.py "$@"
+python3 beta.py "$@"
 """
 
 if platform.system() == "Windows":
