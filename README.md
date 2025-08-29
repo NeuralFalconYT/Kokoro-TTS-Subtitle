@@ -94,7 +94,7 @@ Alternative ways to use Kokoro-TTS [kokoro-onnx](https://github.com/thewh1teagle
    If you used a virtual environment, make sure you enabled it.
    - **Windows/Mac/Linux:**
      ```sh
-     python app.py
+     python beta.py
      ```
    Or,<br>
    ```
