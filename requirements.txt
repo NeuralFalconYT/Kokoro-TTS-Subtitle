@@ -1,9 +1,0 @@
-kokoro>=0.9.4
-gradio>=5.9.1
-pydub>=0.25.1
-click
-misaki[zh]
-misaki[ja]
-deep_translator==1.11.4
-pysrt>=1.1.2
-librosa>=0.11.0
