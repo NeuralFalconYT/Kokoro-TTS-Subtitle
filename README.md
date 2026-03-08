@@ -1,14 +1,59 @@
 # Kokoro TTS V1.0 with Subtitle & SRT Dubbing
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/NeuralFalconYT/Kokoro-TTS-Subtitle/blob/main/Kokoro_82M_v1_0.ipynb) <br>
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Fujitoo/Kokoro-TTS-Subtitle/blob/multispeaker/Kokoro_82M_v1_0.ipynb) <br>
 [![HuggingFace Space Demo](https://img.shields.io/badge/🤗-Space%20demo-yellow)](https://huggingface.co/spaces/NeuralFalcon/Kokoro-TTS-Subtitle)
 
 Alternative ways to use Kokoro-TTS [kokoro-onnx](https://github.com/thewh1teagle/kokoro-onnx), [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI), [kokoro](https://github.com/hexgrad/kokoro)
+
+## 🚀 Quick Start with Google Colab
+
+**No installation needed!** Run directly in Google Colab:
+
+1. **Open the Colab Notebook:**
+   - Click [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Fujitoo/Kokoro-TTS-Subtitle/blob/multispeaker/Kokoro_82M_v1_0.ipynb)
+
+2. **Select Branch:** Choose `multispeaker` for latest features
+
+3. **Run Step 1** to install dependencies
+
+4. **Run Step 2** and select:
+   - `multispeaker.py` for Multi-Speaker Studio
+   - `beta.py` for complete suite
+   - `app.py` for simple TTS
+
+5. **Click the public URL** to access the interface
+
+---
 
 
 ![app](https://github.com/user-attachments/assets/a33decd0-6e60-4fda-aceb-9bd4485b8ca9)
 
 ![srt dub](https://github.com/user-attachments/assets/04a0a26f-ca3a-404a-b642-ccdf23938e9a)
+
+## Features
+
+### 🎭 Multi-Speaker Studio (NEW!)
+Create natural dialogues and conversations with multiple speakers!
+- Assign different voices to each speaker
+- Write scripts with speaker labels
+- Automatic volume normalization
+- Custom pause control for dramatic timing
+- Inline voice overrides
+
+See [MULTISPEAKER_README.md](MULTISPEAKER_README.md) for detailed documentation.
+
+### 📝 Multilingual TTS
+- Support for 9 languages
+- Multiple voices per language
+- Word-level and sentence-level SRT generation
+- Audio speed control
+- Text translation
+
+### 🎬 SRT Dubbing
+- Generate audio from subtitle files
+- Match speaker timing automatically
+- Translate subtitles to target language
+- Preserve original speaker pacing
 
 ## Installation
 

@@ -1171,9 +1171,21 @@ def main(debug, share):
     demo1 = ui()
     demo2 = subtitle_ui()
     demo3 = tutorial()
+    
+    # Import multi-speaker UI
+    try:
+        from multispeaker import create_multispeaker_ui
+        demo4 = create_multispeaker_ui()
+        demos = [demo1, demo2, demo4, demo3]
+        tab_names = ["Multilingual TTS", "SRT Dubbing", "Multi-Speaker Studio", "VoicePack Explanation"]
+    except ImportError as e:
+        print(f"Warning: Could not load multi-speaker module: {e}")
+        demos = [demo1, demo2, demo3]
+        tab_names = ["Multilingual TTS", "SRT Dubbing", "VoicePack Explanation"]
+    
     custom_css = """.gradio-container { font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif; }"""
-    demo = gr.TabbedInterface([demo1, demo2,demo3],
-                              ["Multilingual TTS","SRT Dubbing","VoicePack Explanation"],
+    demo = gr.TabbedInterface(demos,
+                              tab_names,
                               title="Kokoro TTS",
                               theme=gr.themes.Soft(),
                               css=custom_css)
