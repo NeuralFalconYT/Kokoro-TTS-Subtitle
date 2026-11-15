@@ -1,3 +1,4 @@
+misaki==0.7.16
 kokoro>=0.9.4
 gradio>=5.9.1
 pydub>=0.25.1
